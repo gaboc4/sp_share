@@ -5,8 +5,7 @@ class SPAuth():
     def __init__(self) -> None:
         self.scope = "user-read-currently-playing"
 
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope,
-                                                            redirect_uri='http://127.0.0.1:5001'))
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope))
 
     def get_results(self):
         results = self.sp.currently_playing()
