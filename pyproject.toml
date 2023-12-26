@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "sp-share"
+version = "0.1.0"
+description = "Flask app that will make spotify api calls to get current playing song and then pipe output as a slack message"
+authors = ["gabriel centeno <gabrielc007@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^3.0.0"
+spotipy = "^2.23.0"
+gunicorn = "^21.2.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.27.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
