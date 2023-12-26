@@ -1,1 +1,1 @@
-web: gunicorn -b 0.0.0.0:5000 routes:app
+web: gunicorn -b 127.0.0.1:5002 routes:app
