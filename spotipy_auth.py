@@ -5,7 +5,8 @@ class SPAuth():
     def __init__(self) -> None:
         self.scope = "user-read-currently-playing"
 
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope))
+        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope, show_dialog=False, 
+                                                            open_browser=True))
 
     def get_results(self):
         results = self.sp.currently_playing()
