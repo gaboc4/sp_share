@@ -10,7 +10,7 @@ class SPAuth():
         self.redirect_uri = os.getenv('SPOTIPY_REDIRECT_URI')
         self.client_id = os.getenv('SPOTIPY_CLIENT_ID')
         self.client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-        self.auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={sp_auth.client_id}&redirect_uri={sp_auth.redirect_uri}&scope={sp_auth.scope}"
+        self.auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={self.scope}"
     
     def get_access_token(self, auth_code: str):
         response = requests.post(
