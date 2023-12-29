@@ -29,8 +29,8 @@ app = FastAPI()
 sp_auth = SPAuth()
 
 
-@app.get("/")
-@app.post("/")
+@app.get("/", include_in_schema=False)
+@app.post("/", include_in_schema=False)
 def home():
     return RedirectResponse(sp_auth.auth_url)
 
