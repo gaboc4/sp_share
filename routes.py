@@ -38,8 +38,10 @@ def get_song(code: Optional[str] = None):
     headers = sp_auth.get_access_token(code)
     url = f"https://api.spotify.com/v1/me/player/currently-playing"
     results = requests.get(url=url, headers=headers).json()
-    song_name = results['item']['name'] 
-    artist = results['item']['artists'][0]["name"]
-    preview_url = results['item']['artists'][0]['external_urls']['spotify']
-    image = results['item']['album']['images'][0]['url']
-    return HTMLResponse(content="\n".join([f"<img src={image}></img>", song_name, artist, preview_url]))
+    if results:
+        song_name = results['item']['name'] 
+        artist = results['item']['artists'][0]["name"]
+        preview_url = results['item']['artists'][0]['external_urls']['spotify']
+        image = results['item']['album']['images'][0]['url']
+        return HTMLResponse(content="\n".join([f"<img src={image}></img>", song_name, artist, preview_url]))
+    return HTMLResponse(content="<p>No song playing</p>")
