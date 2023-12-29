@@ -29,7 +29,8 @@ app = FastAPI()
 sp_auth = SPAuth()
 
 
-@app.api_route("/")
+@app.get("/")
+@app.post("/")
 def home():
     return RedirectResponse(sp_auth.auth_url)
 
@@ -37,8 +38,9 @@ def home():
 def get_song(code: Optional[str] = None):
     headers = sp_auth.get_access_token(code)
     url = f"https://api.spotify.com/v1/me/player/currently-playing"
-    results = requests.get(url=url, headers=headers).json()
-    if results:
+    results = requests.get(url=url, headers=headers)
+    if results.status_code == 200:
+        results = results.json()
         song_name = results['item']['name'] 
         artist = results['item']['artists'][0]["name"]
         preview_url = results['item']['artists'][0]['external_urls']['spotify']
