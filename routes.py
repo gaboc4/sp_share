@@ -1,8 +1,9 @@
 import os
 import requests
-from typing import Optional
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
+
+from token_db import TokenDB
 
 class SPAuth():
     def __init__(self) -> None:
@@ -12,13 +13,12 @@ class SPAuth():
         self.client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
         self.auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={self.scope}"
     
-    def get_access_token(self, auth_code: str):
+    def get_access_token(self):
         response = requests.post(
             "https://accounts.spotify.com/api/token",
             data={
-                "grant_type": "authorization_code",
-                "code": auth_code,
-                "redirect_uri": self.redirect_uri,
+                "grant_type": "refresh_token",
+                "refresh_token": os.getenv('REFRESH_TOKEN'),
             },
             auth=(self.client_id, self.client_secret),
         )
@@ -27,16 +27,16 @@ class SPAuth():
 
 app = FastAPI()
 sp_auth = SPAuth()
-
+token_db = TokenDB()
 
 @app.get("/", include_in_schema=False)
 @app.post("/", include_in_schema=False)
 def home():
-    return RedirectResponse(sp_auth.auth_url, status_code=301)
+    return HTMLResponse(content="<p>welcome</p>")
 
 @app.get("/get_song")
-def get_song(code: Optional[str] = None):
-    headers = sp_auth.get_access_token(code)
+def get_song():
+    headers = sp_auth.get_access_token()
     url = f"https://api.spotify.com/v1/me/player/currently-playing"
     results = requests.get(url=url, headers=headers)
     if results.status_code == 200:
