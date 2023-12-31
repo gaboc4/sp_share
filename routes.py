@@ -34,7 +34,8 @@ token_db = TokenDB()
 def home():
     return HTMLResponse(content="<p>welcome</p>")
 
-@app.get("/get_song")
+@app.get("/get_song", include_in_schema=False)
+@app.post("/get_song", include_in_schema=False)
 def get_song():
     headers = sp_auth.get_access_token()
     url = f"https://api.spotify.com/v1/me/player/currently-playing"
