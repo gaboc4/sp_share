@@ -32,7 +32,7 @@ sp_auth = SPAuth()
 @app.get("/", include_in_schema=False)
 @app.post("/", include_in_schema=False)
 def home():
-    return RedirectResponse(sp_auth.auth_url)
+    return RedirectResponse(sp_auth.auth_url, status_code=301)
 
 @app.get("/get_song")
 def get_song(code: Optional[str] = None):
