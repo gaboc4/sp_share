@@ -31,8 +31,7 @@ class SPAuth():
         refresh_token = response.json()["refresh_token"]
         with sqlite3.connect("sp_share.db") as conn:
             cur = conn.cursor()
-            cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
-            cur.execute(f"INSERT INTO token_info VALUES ('{self.user_id}', '{refresh_token}')")
+            cur.execute(f"UPDATE token_info SET refresh_token = '{refresh_token}' WHERE refresh_token = 'None'")
 
     def use_refresh_token(self, user_id: str):
         with sqlite3.connect("sp_share.db") as conn:
@@ -58,7 +57,10 @@ sp_auth = SPAuth()
 
 @app.post("/auth")
 def auth_user(response: SimpleModel = Depends()):
-    sp_auth.user_id = response.user_id
+    with sqlite3.connect("sp_share.db") as conn:
+        cur = conn.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
+        cur.execute(f"INSERT INTO token_info VALUES ('{response.user_id}', 'None')")
     return {
 			"blocks": [
 				{
