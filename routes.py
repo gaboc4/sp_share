@@ -67,8 +67,7 @@ def auth_user(response: SimpleModel = Depends()):
 			]
             }
 
-    return RedirectResponse(url=sp_auth.auth_url, status_code=301)
-
+@app.get("/callback", include_in_schema=False)
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
     print(code)
