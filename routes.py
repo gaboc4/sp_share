@@ -53,10 +53,28 @@ token_db = TokenDB()
 sp_auth = SPAuth(db_conn=token_db)
 
 @app.post("/auth")
-def auth_user(user_id: SimpleModel = Depends()):
-    print(user_id)
-    sp_auth.user_id = user_id
-    return RedirectResponse(url=sp_auth.auth_url, status_code=301)
+def auth_user(response: SimpleModel = Depends()):
+    sp_auth.user_id = response.user_id
+    return {
+	"attachments": [
+		{
+			"blocks": [
+				{
+					"type": "section",
+					"accessory": {
+						"type": "button",
+						"text": {
+							"type": "plain_text",
+							"text": f"<{sp_auth.auth_url}|Go to Auth> :spotify:",
+							"emoji": True
+						},
+						"value": "view_alternate_1"
+					}
+				}
+			]
+		}
+	]
+}
 
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
