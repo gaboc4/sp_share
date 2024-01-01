@@ -1,25 +1,21 @@
 import os
 import requests
 from dataclasses import dataclass
-from typing import Annotated
 from fastapi import Depends, FastAPI, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
+import sqlite3
 
-from token_db import TokenDB
 
 @dataclass
 class SimpleModel:
     user_id: str = Form(...)
 
 class SPAuth():
-    def __init__(self, db_conn: TokenDB) -> None:
+    def __init__(self) -> None:
         self.scope = "user-read-currently-playing"
         self.redirect_uri = os.getenv('SPOTIPY_REDIRECT_URI')
         self.client_id = os.getenv('SPOTIPY_CLIENT_ID')
         self.client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
         self.user_id = None
-        self.db_conn=db_conn
         self.auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={self.scope}"
     
     def save_refresh_token(self, auth_code: str):
@@ -33,10 +29,16 @@ class SPAuth():
             auth=(self.client_id, self.client_secret),
         )
         refresh_token = response.json()["refresh_token"]
-        self.db_conn.set_token(user_id=self.user_id, refresh_token=refresh_token)
+        with sqlite3.connect("sp_share.db"):
+            cur = self.conn.cursor()
+            cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
+            cur.execute(f"INSERT INTO token_info VALUES ('{self.user_id}', '{refresh_token}')")
 
-    def use_refresh_token(self):
-        refresh_token = self.db_conn.get_token(user_id=self.user_id)
+    def use_refresh_token(self, user_id: str):
+        with sqlite3.connect("sp_share.db"):
+            cur = self.conn.cursor()
+            res = cur.execute(f"SELECT refresh_token FROM token_info WHERE user_id = '{user_id}'")
+            refresh_token = res.fetchone()
         response = requests.post(
             "https://accounts.spotify.com/api/token",
             data={
@@ -49,8 +51,7 @@ class SPAuth():
         return {"Authorization": "Bearer " + access_token}
 
 app = FastAPI()
-token_db = TokenDB()
-sp_auth = SPAuth(db_conn=token_db)
+sp_auth = SPAuth()
 
 @app.post("/auth")
 def auth_user(response: SimpleModel = Depends()):
@@ -70,12 +71,11 @@ def auth_user(response: SimpleModel = Depends()):
 @app.get("/callback", include_in_schema=False)
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
-    print(code)
     sp_auth.save_refresh_token(auth_code=code)
 
 @app.post("/get_song", include_in_schema=False)
-def get_song():
-    headers = sp_auth.use_refresh_token()
+def get_song(response: SimpleModel = Depends()):
+    headers = sp_auth.use_refresh_token(response.user_id)
     url = f"https://api.spotify.com/v1/me/player/currently-playing"
     results = requests.get(url=url, headers=headers)
     if results.status_code == 200:
