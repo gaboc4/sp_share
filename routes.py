@@ -29,14 +29,14 @@ class SPAuth():
             auth=(self.client_id, self.client_secret),
         )
         refresh_token = response.json()["refresh_token"]
-        with sqlite3.connect("sp_share.db"):
-            cur = self.conn.cursor()
+        with sqlite3.connect("sp_share.db") as conn:
+            cur = conn.cursor()
             cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
             cur.execute(f"INSERT INTO token_info VALUES ('{self.user_id}', '{refresh_token}')")
 
     def use_refresh_token(self, user_id: str):
-        with sqlite3.connect("sp_share.db"):
-            cur = self.conn.cursor()
+        with sqlite3.connect("sp_share.db") as conn:
+            cur = conn.cursor()
             res = cur.execute(f"SELECT refresh_token FROM token_info WHERE user_id = '{user_id}'")
             refresh_token = res.fetchone()
         response = requests.post(
