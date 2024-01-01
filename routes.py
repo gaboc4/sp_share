@@ -44,8 +44,8 @@ def get_song():
         results = results.json()
         song_name = results['item']['name'] 
         artist = results['item']['artists'][0]["name"]
-        preview_url = results['item']['artists'][0]['external_urls']['spotify']
-        image = results['item']['external_urls']['spotify']
+        preview_url = results['item']['external_urls']['spotify']
+        image = results['item']['album']['images'][-1]['url']
         return {
             "blocks": [
                 {
