@@ -45,6 +45,23 @@ def get_song():
         song_name = results['item']['name'] 
         artist = results['item']['artists'][0]["name"]
         preview_url = results['item']['artists'][0]['external_urls']['spotify']
-        image = results['item']['album']['images'][0]['url']
-        return HTMLResponse(content="\n".join([f"<img src={image}></img>", song_name, artist, preview_url]))
-    return HTMLResponse(content="<p>No song playing</p>")
+        image = results['item']['external_urls']['spotify']
+        # return HTMLResponse(content="\n".join([f"<img src={image}></img>", song_name, artist, preview_url]))
+        return       {
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Deploys in the last six hours"
+            }
+          }]}
+    return       {
+        "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Deploys in the last six hours"
+            }
+          }]}
