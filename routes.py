@@ -71,7 +71,7 @@ def auth_user(response: SimpleModel = Depends()):
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
     print(code)
-    sp_auth.save_refresh_token(auth_code=code, user_id=sp_auth.user_id)
+    sp_auth.save_refresh_token(auth_code=code)
 
 @app.post("/get_song", include_in_schema=False)
 def get_song():
