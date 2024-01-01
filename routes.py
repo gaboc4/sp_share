@@ -1,6 +1,7 @@
 import os
 import requests
-from fastapi import FastAPI
+from typing import Annotated
+from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from token_db import TokenDB
@@ -45,20 +46,17 @@ app = FastAPI()
 token_db = TokenDB()
 sp_auth = SPAuth(db_conn=token_db)
 
-@app.get("/auth", include_in_schema=False)
 @app.post("/auth", include_in_schema=False)
-def auth_user(content):
+def auth_user(content: Annotated[str, Form()],):
     print(content)
     sp_auth.user_id = content
     return RedirectResponse(url=sp_auth.auth_url, status_code=301)
 
-@app.get("/callback", include_in_schema=False)
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
     print(code)
     sp_auth.save_refresh_token(auth_code=code, user_id=sp_auth.user_id)
 
-@app.get("/get_song", include_in_schema=False)
 @app.post("/get_song", include_in_schema=False)
 def get_song():
     headers = sp_auth.use_refresh_token()
