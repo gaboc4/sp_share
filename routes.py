@@ -1,14 +1,16 @@
 import os
 import requests
+from dataclasses import dataclass
 from typing import Annotated
-from fastapi import FastAPI, Form
+from fastapi import Depends, FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 from token_db import TokenDB
 
-class Data(BaseModel):
-    user: str
+@dataclass
+class SimpleModel:
+    user_id: str = Form(...)
 
 class SPAuth():
     def __init__(self, db_conn: TokenDB) -> None:
@@ -50,10 +52,10 @@ app = FastAPI()
 token_db = TokenDB()
 sp_auth = SPAuth(db_conn=token_db)
 
-@app.post("/auth", include_in_schema=False)
-def auth_user(content: Data):
-    print(content)
-    sp_auth.user_id = content
+@app.post("/auth")
+def auth_user(user_id: SimpleModel = Depends()):
+    print(user_id)
+    sp_auth.user_id = user_id
     return RedirectResponse(url=sp_auth.auth_url, status_code=301)
 
 @app.post("/callback", include_in_schema=False)
