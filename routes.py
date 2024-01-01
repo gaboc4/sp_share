@@ -39,6 +39,9 @@ class SPAuth():
             cur = conn.cursor()
             res = cur.execute(f"SELECT refresh_token FROM token_info WHERE user_id = '{user_id}'")
             refresh_token = res.fetchone()
+            test = cur.execute("select * from token_info")
+            print(test.fetchall())
+        print(refresh_token)
         response = requests.post(
             "https://accounts.spotify.com/api/token",
             data={
