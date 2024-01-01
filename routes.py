@@ -1,7 +1,9 @@
 import os
+from fastapi.responses import HTMLResponse
 import requests
 from dataclasses import dataclass
 from fastapi import Depends, FastAPI, Form
+from fastapi.r
 import sqlite3
 
 
@@ -77,6 +79,8 @@ def auth_user(response: SimpleModel = Depends()):
 @app.post("/callback", include_in_schema=False)
 def callback(code: str):
     sp_auth.save_refresh_token(auth_code=code)
+    return HTMLResponse("<p>Auth complete! You can close this tab, go back to slack, and start sharing \
+                        songs using /sp-share</p>")
 
 @app.post("/get_song", include_in_schema=False)
 def get_song(response: SimpleModel = Depends()):
