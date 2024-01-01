@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse
 import requests
 from dataclasses import dataclass
 from fastapi import Depends, FastAPI, Form
-from fastapi.r
 import sqlite3
 
 
