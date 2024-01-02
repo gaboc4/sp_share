@@ -62,7 +62,6 @@ sp_auth = SPAuth()
 @app.post("/auth")
 def auth_user(request: Request, response: SimpleModel = Depends()):
     request.session['user_id'] = response.user_id
-    print(request.session.get('user_id'))
     return {
 			"blocks": [
 				{
@@ -78,6 +77,7 @@ def auth_user(request: Request, response: SimpleModel = Depends()):
 @app.get("/callback", include_in_schema=False)
 @app.post("/callback", include_in_schema=False)
 def callback(request: Request, code: str):
+    print(request.session.get('user_id'))
     sp_auth.save_refresh_token(auth_code=code, request=request)
     return HTMLResponse("<p>Auth complete! You can close this tab, go back to slack, and start sharing \
                         songs using /sp-share</p>")
