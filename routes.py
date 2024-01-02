@@ -57,7 +57,13 @@ class SPAuth():
 
 app = FastAPI()
 sp_auth = SPAuth()
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("MIDDLEWARE_SECRET_KEY"))
 
+@app.middleware("http")
+async def validate_user(request: Request, call_next):
+    print(request.session)
+    response = await call_next(request)
+    return response
 
 @app.post("/auth")
 def auth_user(request: Request, response: SimpleModel = Depends()):
@@ -127,5 +133,3 @@ def get_song(response: SimpleModel = Depends()):
               "text": "No song playing"
             }
           }]}
-
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("MIDDLEWARE_SECRET_KEY"))
