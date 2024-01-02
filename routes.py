@@ -2,8 +2,9 @@ import os
 from fastapi.responses import HTMLResponse
 import requests
 from dataclasses import dataclass
-from fastapi import Depends, FastAPI, Form
+from fastapi import Depends, FastAPI, Form, Request
 import sqlite3
+from starlette.middleware.sessions import SessionMiddleware
 
 
 @dataclass
@@ -19,7 +20,7 @@ class SPAuth():
         self.user_id = None
         self.auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri}&scope={self.scope}"
     
-    def save_refresh_token(self, auth_code: str):
+    def save_refresh_token(self, request: Request, auth_code: str):
         response = requests.post(
             "https://accounts.spotify.com/api/token",
             data={
@@ -32,7 +33,8 @@ class SPAuth():
         refresh_token = response.json()["refresh_token"]
         with sqlite3.connect("sp_share.db") as conn:
             cur = conn.cursor()
-            cur.execute(f"UPDATE token_info SET refresh_token = '{refresh_token}' WHERE refresh_token = 'None'")
+            cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
+            cur.execute(f"INSERT INTO token_info VALUES ('{request.session['user_id']}', '{refresh_token}')")
 
     def use_refresh_token(self, user_id: str):
         with sqlite3.connect("sp_share.db") as conn:
@@ -56,12 +58,10 @@ class SPAuth():
 app = FastAPI()
 sp_auth = SPAuth()
 
+
 @app.post("/auth")
-def auth_user(response: SimpleModel = Depends()):
-    with sqlite3.connect("sp_share.db") as conn:
-        cur = conn.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS token_info(user_id, refresh_token)")
-        cur.execute(f"INSERT INTO token_info VALUES ('{response.user_id}', 'None')")
+def auth_user(request: Request, response: SimpleModel = Depends()):
+    request.session['user_id'] = response.user_id
     return {
 			"blocks": [
 				{
@@ -76,8 +76,8 @@ def auth_user(response: SimpleModel = Depends()):
 
 @app.get("/callback", include_in_schema=False)
 @app.post("/callback", include_in_schema=False)
-def callback(code: str):
-    sp_auth.save_refresh_token(auth_code=code)
+def callback(request: Request, code: str):
+    sp_auth.save_refresh_token(auth_code=code, request=request)
     return HTMLResponse("<p>Auth complete! You can close this tab, go back to slack, and start sharing \
                         songs using /sp-share</p>")
 
@@ -93,6 +93,7 @@ def get_song(response: SimpleModel = Depends()):
         preview_url = results['item']['external_urls']['spotify']
         image = results['item']['album']['images'][-1]['url']
         return {
+            "response_type": "in_channel",
             "blocks": [
                 {
                     "type": "section",
@@ -125,3 +126,5 @@ def get_song(response: SimpleModel = Depends()):
               "text": "No song playing"
             }
           }]}
+
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("MIDDLEWARE_SECRET_KEY"))
